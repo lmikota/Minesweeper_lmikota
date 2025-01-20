@@ -1,73 +1,158 @@
 package htl.steyr.minesweeper_lmikota;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.Scene;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.URL;
-import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.ResourceBundle;
-
-import static javafx.scene.input.MouseButton.SECONDARY;
+import java.util.Timer;
 
 public class GamefieldController implements Initializable {
+    private int cols;
+    private int rows;
+    private int bombs;
 
-    /**
-     * Konstanten für die Anzahl der Zeilem, die Anzahl der Spalten und die Anzahl der Bomben
-     * <p>
-     * static = nur mit KLasse.Variablenname
-     * final = Variable kann nur 1 mal ein Wert zugewiesen werden
-     */
+    private int secondsSinceStart;
+    private Timeline timerTimeLine;
+    private MinesweeperButtonController minesweeperButtonController;
 
-    public static final int COLS = 10;
-    public static final int ROWS = 10;
-    public static final int BOMBS = 20;
+    private HashMap<String, DifficultySettings> difficultySettingsHashMap = new HashMap<>() {{
+        put("Rookie", new DifficultySettings(6, 10, 12));
+        put("Intermediate", new DifficultySettings(9, 15, 32));
+        put("Master", new DifficultySettings(15, 25, 80));
+    }};
 
-    public GridPane gameField;
-
+    @FXML
+    public ChoiceBox difficultyChoiceBox;
+    @FXML
+    public GridPane gameFieldGridPane;
+    @FXML
+    public Text timerDisplay;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //Sage Javafx, dass wenn ein Fehler auftritt, die exceptionHandler Methode
-        //der GamefliedController Klasse aufgerufen werden soll
         Thread.setDefaultUncaughtExceptionHandler(this::exceptionHandler);
-        /*
-         * Die Initialize - Methode wird aufgerufen, soblad der Controller mir der FXML - Datei "verheiratet" wurde.
-         * In der Initialize - Methode kann auf die GUI - Elemente (Buttons, Labels, ...) zugegriffen werden.
-         */
+        difficultyChoiceBox.getItems().addAll("Rookie", "Intermediate", "Master");
+        difficultyChoiceBox.setValue("Rookie"); //Default value
 
-        /*
-         * @ToDo:
-         *      Befüllen Sie jede Zelle der gameField GridPane mit einem Button
-         */
+    }
 
-        for (int col = 0; col < COLS; ++col) {
-            for (int row = 0; row < ROWS; ++row) {
+    public void startButtonClicked(ActionEvent actionEvent) {
+        startTimer();
+        setRows(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getRows());
+        setCols(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getCols());
+        setBombs(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
+        createGameFieldGrid();
+    }
+
+    public void exitButtonClicked(ActionEvent actionEvent) {
+        Platform.exit();
+    }
+
+    public void startTimer() {
+        timerTimeLine = new Timeline(new KeyFrame(Duration.seconds(1), actionEvent -> {
+            setSecondsSinceStart(getSecondsSinceStart() + 1);
+            timerDisplay.setText("Timer: " + getSecondsSinceStart());
+        }));
+        timerTimeLine.setCycleCount(Timeline.INDEFINITE);
+        timerTimeLine.play();
+    }
+
+    public void stopTimer() {
+        timerTimeLine.stop();
+    }
+
+
+    private void createGameFieldGrid() {
+
+        gameFieldGridPane.getChildren().clear();
+        gameFieldGridPane.getColumnConstraints().clear();
+        gameFieldGridPane.getRowConstraints().clear();
+
+        double columnPercentage = 100.0 / cols;
+        double rowPercentage = 100.0 / rows;
+
+        for (int i = 0; i < cols; i++) {
+            ColumnConstraints columnConstraints = new ColumnConstraints();
+            columnConstraints.setPercentWidth(columnPercentage);
+            columnConstraints.setHgrow(Priority.ALWAYS);
+            gameFieldGridPane.getColumnConstraints().add(columnConstraints);
+        }
+
+        for (int i = 0; i < rows; i++) {
+            RowConstraints rowConstraints = new RowConstraints();
+            rowConstraints.setPercentHeight(rowPercentage);
+            rowConstraints.setVgrow(Priority.ALWAYS);
+            gameFieldGridPane.getRowConstraints().add(rowConstraints);
+        }
+
+        placeButtonsIntoGrid();
+        defineBombs();
+    }
+
+
+    private void placeButtonsIntoGrid() {
+        for (int col = 0; col < cols; ++col) {
+            for (int row = 0; row < rows; ++row) {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("minesweeperbutton-view.fxml"));
                     Pane buttonPane = loader.load();
                     MinesweeperButtonController controller = loader.getController();
                     buttonPane.setUserData(controller);
+//                    switch (difficultyChoiceBox.getValue().toString()) {
+//                        case "Rookie":
+//                            controller.bombLabel.getStyleClass().add("rookie");
+//                            controller.infoLabel.getStyleClass().add("rookie");
+//                            controller.button.getStyleClass().add("rookie");
+//                            break;
+//                        case "Intermediate":
+//                            controller.bombLabel.getStyleClass().add("intermediate");
+//                            controller.infoLabel.getStyleClass().add("intermediate");
+//                            controller.button.getStyleClass().add("intermediate");
+//                            break;
+//                        case "Master":
+//                            controller.bombLabel.getStyleClass().add("master");
+//                            controller.infoLabel.getStyleClass().add("master");
+//                            controller.button.getStyleClass().add("master");
+//                            break;
+//                    }
+                    if ((col + row) % 2 == 0) {
+                        controller.button.getStyleClass().add("lightGreenButton");
+                    } else {
+                        controller.button.getStyleClass().add("greenButton");
+                    }
 
-                    gameField.add(buttonPane, col, row);
+                    gameFieldGridPane.add(buttonPane, col, row);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
+    }
 
+    private void defineBombs() {
         int bombCount = 0;
-        while (bombCount < BOMBS) {
+        while (bombCount < bombs) {
             Random r = new Random();
-            int randCols = r.nextInt(COLS);
-            int randRows = r.nextInt(ROWS);
+            int randCols = r.nextInt(cols);
+            int randRows = r.nextInt(rows);
 
             MinesweeperButtonController controller = getController(randCols, randRows);
 
@@ -77,8 +162,8 @@ public class GamefieldController implements Initializable {
             }
         }
 
-        for (int col = 0; col < COLS; ++col) {
-            for (int row = 0; row < ROWS; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            for (int row = 0; row < rows; ++row) {
                 MinesweeperButtonController controller = getController(col, row);
                 controller.setBombsNearby(getBombsNearPosition(col, row));
             }
@@ -86,7 +171,7 @@ public class GamefieldController implements Initializable {
     }
 
     private Node getChildAt(int col, int row) {
-        for (Node child : gameField.getChildren()) {
+        for (Node child : gameFieldGridPane.getChildren()) {
             if (GridPane.getColumnIndex(child) == col && GridPane.getRowIndex(child) == row) {
                 return child;
             }
@@ -103,8 +188,29 @@ public class GamefieldController implements Initializable {
         return null;
     }
 
-    public void revealFields (int col, int row) {
 
+    public void revealFields(final int COL, final int ROW) {
+        for (Integer col = (-1); col <= 1; ++col) {
+
+            for (Integer row = (-1); row <= 1; ++row) {
+
+                if (COL + col >= 0 && COL + col < getCols() && ROW + row >= 0 && ROW + row < getRows()) {
+                    minesweeperButtonController = getController(COL + col, ROW + row);
+
+                    if (minesweeperButtonController != null && !minesweeperButtonController.isRevealed() && !minesweeperButtonController.isBomb()) {
+                        try {
+                            minesweeperButtonController.reveal();
+                        } catch (BombException e) {
+                            System.out.println("Game Over!");
+                        }
+
+                        if (minesweeperButtonController.getBombsNearby() == 0) {
+                            revealFields(COL + col, ROW + row);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private int getBombsNearPosition(int col, int row) {
@@ -127,8 +233,8 @@ public class GamefieldController implements Initializable {
         return bombsNearby;
     }
 
-    public void exceptionHandler(Thread t, Throwable e) {
-
+    private void exceptionHandler(Thread t, Throwable e) {
+        stopTimer();
         /**
          * @ToDo: Prüfe ob es sich um eine Bombexception handelt.
          * Falls Ja: Decke gesamtes Speilfeld auf
@@ -139,16 +245,47 @@ public class GamefieldController implements Initializable {
          *
          * Falls Nein: Mache nichts - da es ein anderer Fehle war.
          */
-        for (int col = 0; col < COLS; ++col) {
-            for (int row = 0; row < ROWS; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            for (int row = 0; row < rows; ++row) {
                 MinesweeperButtonController controller = getController(col, row);
                 try {
                     controller.buttonClicked(null);
                 } catch (BombException ex) {
-
+                    System.out.println("You clicked a Bomb!");
                 }
             }
         }
-        System.out.println("Ein Fehler ist Aufgetreten");
+    }
+
+    public int getCols() {
+        return this.cols;
+    }
+
+    public void setCols(int cols) {
+        this.cols = cols;
+    }
+
+    public int getRows() {
+        return this.rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
+
+    public int getBombs() {
+        return this.bombs;
+    }
+
+    public void setBombs(int bombs) {
+        this.bombs = bombs;
+    }
+
+    public int getSecondsSinceStart() {
+        return secondsSinceStart;
+    }
+
+    public void setSecondsSinceStart(int secondsSinceStart) {
+        this.secondsSinceStart = secondsSinceStart;
     }
 }

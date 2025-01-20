@@ -1,0 +1,39 @@
+#gameFieldGridPane {
+    -fx-border-width: 4px;
+    -fx-border-color: black;
+}
+
+.greenButton {
+    -fx-background-color: green;
+}
+
+.lightGreenButton {
+    -fx-background-color: lightgreen;
+}
+
+/*.rookie {*/
+/*    -fx-max-height: 40;*/
+/*    -fx-min-height: 40;*/
+/*    -fx-max-width: 40;*/
+/*    -fx-min-width: 40;*/
+/*    -fx-pref-height: 40;*/
+/*    -fx-pref-width: 40;*/
+/*}*/
+
+/*.intermediate {*/
+/*    -fx-max-height: 10;*/
+/*    -fx-min-height: 10;*/
+/*    -fx-max-width: 10;*/
+/*    -fx-min-width: 10;*/
+/*    -fx-pref-height: 10;*/
+/*    -fx-pref-width: 10;*/
+/*}*/
+
+/*.master {*/
+/*    -fx-max-height: 5;*/
+/*    -fx-min-height: 5;*/
+/*    -fx-max-width: 5;*/
+/*    -fx-min-width: 5;*/
+/*    -fx-pref-height: 5;*/
+/*    -fx-pref-width: 5;*/
+/*}*/

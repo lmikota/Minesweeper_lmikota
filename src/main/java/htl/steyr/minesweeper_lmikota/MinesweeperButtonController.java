@@ -16,23 +16,17 @@ public class MinesweeperButtonController implements Initializable {
     public Label infoLabel;
     public Button button;
 
-    private boolean bomb = false; // Liegt eine Bombe hinter edem Button?
+    private boolean bomb = false; // Liegt eine Bombe hinter dem Button?
     private boolean marked = false; // Wurde das Feld markiert?
     private boolean revealed = false; // Wurde das Feld aufgedeckt?
     private int bombsNearby = 0; // Wieviele Bomben liegen im Umkreis?
+    private GamefieldController gamefieldController;
 
     private int col = -1; // die aktuelle Spalte des Buttons
     private int row = -1; // die aktuelle Zeile des Buttons
 
 
     public void buttonClicked(MouseEvent mouseEvent) throws BombException {
-
-        /**
-         *Prüfe, ob der Button mit der linken oder rechten Maustaste gedrückt wurde.
-         *
-         * Wenn er mit der Rechten Maustaste gedrückt wurde, so setze eine Flagge 🚩 als Text.
-         * Wenn er mit der Linken Maustaste gedrückt wurde, so soll der Button verschwinden.
-         */
         if(mouseEvent != null) {
             if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                 if (!marked) {
@@ -43,6 +37,7 @@ public class MinesweeperButtonController implements Initializable {
                     button.setText("");
                 }
             } else if (mouseEvent.getButton() == MouseButton.PRIMARY && !marked) {
+                reveal();
                 revealed = true;
                 button.setVisible(false);
 
@@ -51,13 +46,12 @@ public class MinesweeperButtonController implements Initializable {
                 } else {
                     //Feld und angrenzende leere Felder aufdecken
                 }
-
             }
         } else {
             revealed = true;
             button.setVisible(false);
+            reveal();
         }
-
     }
 
     @Override
@@ -70,6 +64,21 @@ public class MinesweeperButtonController implements Initializable {
         bombLabel.setVisible(false); // verstecke das Element
         infoLabel.setVisible(false); // verstecke das Element
 
+    }
+
+    public void reveal() throws BombException {
+        revealed = true;
+        button.setVisible(false);
+
+        if (isBomb()) {
+            bombLabel.setVisible(true);
+            throw new BombException();
+        } else {
+            infoLabel.setVisible(true);
+            if (getBombsNearby() == 0) {
+                gamefieldController.revealFields(col, row);
+            }
+        }
     }
 
     public void setPosition(int col, int row){
@@ -96,5 +105,17 @@ public class MinesweeperButtonController implements Initializable {
 
             infoLabel.setText(Integer.toString(num));
         }
+    }
+
+    public boolean isRevealed() {
+        return revealed;
+    }
+
+    public void setRevealed(boolean revealed) {
+        this.revealed = revealed;
+    }
+
+    public int getBombsNearby() {
+        return bombsNearby;
     }
 }
