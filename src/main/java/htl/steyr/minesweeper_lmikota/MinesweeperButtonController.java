@@ -1,6 +1,7 @@
 package htl.steyr.minesweeper_lmikota;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,8 +13,11 @@ import java.util.ResourceBundle;
 
 public class MinesweeperButtonController implements Initializable {
 
+    @FXML
     public Label bombLabel;
+    @FXML
     public Label infoLabel;
+    @FXML
     public Button button;
 
     private boolean bomb = false; // Liegt eine Bombe hinter dem Button?
@@ -21,85 +25,76 @@ public class MinesweeperButtonController implements Initializable {
     private boolean revealed = false; // Wurde das Feld aufgedeckt?
     private int bombsNearby = 0; // Wieviele Bomben liegen im Umkreis?
     private GamefieldController gamefieldController;
+    private int markedFieldsCount = 0;
 
     private int col = -1; // die aktuelle Spalte des Buttons
     private int row = -1; // die aktuelle Zeile des Buttons
 
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        bombLabel.setVisible(false); // verstecke das Element
+        infoLabel.setVisible(false); // verstecke das Element
+    }
 
-    public void buttonClicked(MouseEvent mouseEvent) throws BombException {
-        if(mouseEvent != null) {
+    public void buttonClicked(MouseEvent mouseEvent) {
+        if (mouseEvent != null) {
             if (mouseEvent.getButton() == MouseButton.SECONDARY) {
-                if (!marked) {
-                    marked = true;
+                if (!isMarked()) {
+                    setMarked(true);
                     button.setText("🚩");
-                } else {
-                    marked = false;
+                    setMarkedFieldsCount(getMarkedFieldsCount() + 1);
+                } else if (isMarked()) {
+                    setMarked(false);
                     button.setText("");
+                    setMarkedFieldsCount(getMarkedFieldsCount() - 1);
                 }
             } else if (mouseEvent.getButton() == MouseButton.PRIMARY && !marked) {
                 reveal();
-                revealed = true;
+                setRevealed(true);
                 button.setVisible(false);
-
-                if (isBomb()) {
-                    throw new BombException();
-                } else {
-                    //Feld und angrenzende leere Felder aufdecken
-                }
             }
         } else {
-            revealed = true;
+            setRevealed(true);
             button.setVisible(false);
             reveal();
         }
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        /**
-         * initialize ist der frühstmögliche Zeitpunkt, um auf GUI-Elemente zuzugreifen.
-         */
-
-        bombLabel.setVisible(false); // verstecke das Element
-        infoLabel.setVisible(false); // verstecke das Element
-
-    }
-
-    public void reveal() throws BombException {
+    public void reveal() {
         revealed = true;
         button.setVisible(false);
 
         if (isBomb()) {
             bombLabel.setVisible(true);
-            throw new BombException();
+            gamefieldController.revalAllFields();
         } else {
             infoLabel.setVisible(true);
             if (getBombsNearby() == 0) {
-                gamefieldController.revealFields(col, row);
+                gamefieldController.revealEmptyFields(col,row);
             }
         }
     }
 
-    public void setPosition(int col, int row){
+    public void setPosition(int col, int row) {
         this.col = col;
         this.row = row;
     }
 
-    public boolean isBomb(){
+    public boolean isBomb() {
         return bomb;
     }
 
-    public void setBomb(boolean bomb){
+    public void setBomb(boolean bomb) {
         this.bomb = bomb;
 
         bombLabel.setVisible(bomb);
     }
 
-    public void setBombsNearby (int num) {
+    public void setBombsNearby(int num) {
         this.bombsNearby = num;
 
-        if(!isBomb()) {
+        if (!isBomb()) {
             bombLabel.setVisible(false);
             infoLabel.setVisible(true);
 
@@ -117,5 +112,31 @@ public class MinesweeperButtonController implements Initializable {
 
     public int getBombsNearby() {
         return bombsNearby;
+    }
+
+    public boolean isMarked() {
+        return marked;
+    }
+
+    public void setMarked(boolean marked) {
+        this.marked = marked;
+    }
+
+
+    public GamefieldController getGamefieldController() {
+        return gamefieldController;
+    }
+
+    public void setGamefieldController(GamefieldController gamefieldController) {
+        this.gamefieldController = gamefieldController;
+    }
+
+
+    public int getMarkedFieldsCount() {
+        return markedFieldsCount;
+    }
+
+    public void setMarkedFieldsCount(int markedFieldsCount) {
+        this.markedFieldsCount = markedFieldsCount;
     }
 }

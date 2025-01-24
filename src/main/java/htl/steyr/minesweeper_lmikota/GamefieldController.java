@@ -48,13 +48,16 @@ public class GamefieldController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Thread.setDefaultUncaughtExceptionHandler(this::exceptionHandler);
         difficultyChoiceBox.getItems().addAll("Rookie", "Intermediate", "Master");
         difficultyChoiceBox.setValue("Rookie"); //Default value
 
     }
 
     public void startButtonClicked(ActionEvent actionEvent) {
+        if (timerTimeLine != null) {
+            stopTimer();
+        }
+        setSecondsSinceStart(0);
         startTimer();
         setRows(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getRows());
         setCols(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getCols());
@@ -116,23 +119,9 @@ public class GamefieldController implements Initializable {
                     Pane buttonPane = loader.load();
                     MinesweeperButtonController controller = loader.getController();
                     buttonPane.setUserData(controller);
-//                    switch (difficultyChoiceBox.getValue().toString()) {
-//                        case "Rookie":
-//                            controller.bombLabel.getStyleClass().add("rookie");
-//                            controller.infoLabel.getStyleClass().add("rookie");
-//                            controller.button.getStyleClass().add("rookie");
-//                            break;
-//                        case "Intermediate":
-//                            controller.bombLabel.getStyleClass().add("intermediate");
-//                            controller.infoLabel.getStyleClass().add("intermediate");
-//                            controller.button.getStyleClass().add("intermediate");
-//                            break;
-//                        case "Master":
-//                            controller.bombLabel.getStyleClass().add("master");
-//                            controller.infoLabel.getStyleClass().add("master");
-//                            controller.button.getStyleClass().add("master");
-//                            break;
-//                    }
+                    controller.setGamefieldController(this);
+                    controller.setPosition(col, row);
+
                     if ((col + row) % 2 == 0) {
                         controller.button.getStyleClass().add("lightGreenButton");
                     } else {
@@ -189,24 +178,44 @@ public class GamefieldController implements Initializable {
     }
 
 
-    public void revealFields(final int COL, final int ROW) {
-        for (Integer col = (-1); col <= 1; ++col) {
+    public void revalAllFields() {
+        for (int col = 0; col < getCols(); col++) {
+            for (int row = 0; row < getRows(); row++) {
+                MinesweeperButtonController controller = getController(col, row);
+                if (controller != null) {
+                    if (!controller.isRevealed()) {
+                        controller.reveal();
+                    }
+                }
+            }
+        }
+        stopTimer();
+    }
 
-            for (Integer row = (-1); row <= 1; ++row) {
+    public void revealEmptyFields(int col, int row) {
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
 
-                if (COL + col >= 0 && COL + col < getCols() && ROW + row >= 0 && ROW + row < getRows()) {
-                    minesweeperButtonController = getController(COL + col, ROW + row);
+                // das Feld 0,0 ist das Feld auf dem ich stehe und muss nicht mehr aufgedeckt werden
+                //also wird die nächste Iteration aufgerufen
+                if (i == 0 && j == 0){
+                    continue;
+                }
 
-                    if (minesweeperButtonController != null && !minesweeperButtonController.isRevealed() && !minesweeperButtonController.isBomb()) {
-                        try {
-                            minesweeperButtonController.reveal();
-                        } catch (BombException e) {
-                            System.out.println("Game Over!");
-                        }
+                int nextCol = col + i;
+                int nextRow = row + j;
 
-                        if (minesweeperButtonController.getBombsNearby() == 0) {
-                            revealFields(COL + col, ROW + row);
-                        }
+                // Prüfe ob das Feld innerhalb des Spielfelds ist
+                if (nextCol >= 0 && nextCol < getCols() && nextRow >= 0 && nextRow < getRows()) {
+                    MinesweeperButtonController neighbor = getController(nextCol, nextRow);
+
+                    if (neighbor != null && !neighbor.isRevealed() && !neighbor.isBomb()) {
+                        // Wenn es keine Bombe ist, decken wir es auf
+                        neighbor.setPosition(nextCol, nextRow); // Setze die Position für spätere Verwendung
+                        neighbor.reveal();
+
+                        // Wenn dieses Feld auch keine Bomben in der Nähe hat,
+                        // wird die Rekursion durch den reveal() Aufruf fortgesetzt
                     }
                 }
             }
@@ -233,29 +242,6 @@ public class GamefieldController implements Initializable {
         return bombsNearby;
     }
 
-    private void exceptionHandler(Thread t, Throwable e) {
-        stopTimer();
-        /**
-         * @ToDo: Prüfe ob es sich um eine Bombexception handelt.
-         * Falls Ja: Decke gesamtes Speilfeld auf
-         *          --> Durchlaufe das gesamte Speilfeld (GridPane).
-         *          Hole von der aktuellen Zelle den zuständigen MinesweeperButtonController.
-         *          Decke jedes Feld auf, indem du die ButtonClicked -
-         *          Methode aufrufst (zu  übergeben: null).
-         *
-         * Falls Nein: Mache nichts - da es ein anderer Fehle war.
-         */
-        for (int col = 0; col < cols; ++col) {
-            for (int row = 0; row < rows; ++row) {
-                MinesweeperButtonController controller = getController(col, row);
-                try {
-                    controller.buttonClicked(null);
-                } catch (BombException ex) {
-                    System.out.println("You clicked a Bomb!");
-                }
-            }
-        }
-    }
 
     public int getCols() {
         return this.cols;
