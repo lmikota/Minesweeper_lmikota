@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -25,7 +27,6 @@ public class MinesweeperButtonController implements Initializable {
     private boolean revealed = false; // Wurde das Feld aufgedeckt?
     private int bombsNearby = 0; // Wieviele Bomben liegen im Umkreis?
     private GamefieldController gamefieldController;
-    private int markedFieldsCount = 0;
 
     private int col = -1; // die aktuelle Spalte des Buttons
     private int row = -1; // die aktuelle Zeile des Buttons
@@ -34,30 +35,43 @@ public class MinesweeperButtonController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         bombLabel.setVisible(false); // verstecke das Element
         infoLabel.setVisible(false); // verstecke das Element
+        bombLabel.setTextAlignment(TextAlignment.CENTER);
+        infoLabel.setTextAlignment(TextAlignment.CENTER);
     }
 
+    /**
+     * Lässt flaggen auf die Buttons setzen (sekundäre Maustaste) und ruft bei click mit der primären Maustaste
+     * die reveal() funktion auf
+     *
+     * @param mouseEvent
+     */
     public void buttonClicked(MouseEvent mouseEvent) {
+        if (getGamefieldController().getMarkedFieldsCount() == 187) {
+            getGamefieldController().setMarkedFieldsCount(getGamefieldController().getBombs());
+        }
         if (mouseEvent != null) {
             if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                 if (!isMarked()) {
                     setMarked(true);
                     button.setText("🚩");
-                    setMarkedFieldsCount(getMarkedFieldsCount() + 1);
+                    getGamefieldController().setMarkedFieldsCount(getGamefieldController().getMarkedFieldsCount() - 1);
+                    showMarkedFields(getGamefieldController().getMarkedFieldsCount());
                 } else if (isMarked()) {
                     setMarked(false);
                     button.setText("");
-                    setMarkedFieldsCount(getMarkedFieldsCount() - 1);
+                    getGamefieldController().setMarkedFieldsCount(getGamefieldController().getMarkedFieldsCount() + 1);
+                    showMarkedFields(getGamefieldController().getMarkedFieldsCount());
                 }
             } else if (mouseEvent.getButton() == MouseButton.PRIMARY && !marked) {
                 reveal();
                 setRevealed(true);
                 button.setVisible(false);
             }
-        } else {
-            setRevealed(true);
-            button.setVisible(false);
-            reveal();
         }
+    }
+
+    public void showMarkedFields(int markedFieldsCount) {
+        getGamefieldController().markedFieldsDisplay.setText("🚩: "+markedFieldsCount);
     }
 
 
@@ -67,11 +81,11 @@ public class MinesweeperButtonController implements Initializable {
 
         if (isBomb()) {
             bombLabel.setVisible(true);
-            gamefieldController.revalAllFields();
+            getGamefieldController().revalAllFields();
         } else {
             infoLabel.setVisible(true);
             if (getBombsNearby() == 0) {
-                gamefieldController.revealEmptyFields(col,row);
+                getGamefieldController().revealEmptyFields(col,row);
             }
         }
     }
@@ -131,12 +145,4 @@ public class MinesweeperButtonController implements Initializable {
         this.gamefieldController = gamefieldController;
     }
 
-
-    public int getMarkedFieldsCount() {
-        return markedFieldsCount;
-    }
-
-    public void setMarkedFieldsCount(int markedFieldsCount) {
-        this.markedFieldsCount = markedFieldsCount;
-    }
 }

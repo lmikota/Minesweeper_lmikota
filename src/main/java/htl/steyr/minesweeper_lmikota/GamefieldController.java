@@ -32,11 +32,13 @@ public class GamefieldController implements Initializable {
     private int secondsSinceStart;
     private Timeline timerTimeLine;
     private MinesweeperButtonController minesweeperButtonController;
+    public int markedFieldsCount = 187;
 
-    private HashMap<String, DifficultySettings> difficultySettingsHashMap = new HashMap<>() {{
-        put("Rookie", new DifficultySettings(6, 10, 12));
-        put("Intermediate", new DifficultySettings(9, 15, 32));
-        put("Master", new DifficultySettings(15, 25, 80));
+
+    public HashMap<String, DifficultySettings> difficultySettingsHashMap = new HashMap<>() {{
+        put("Rookie", new DifficultySettings(6, 10, 10));
+        put("Intermediate", new DifficultySettings(9, 15, 25));
+        put("Master", new DifficultySettings(15, 25, 65));
     }};
 
     @FXML
@@ -45,15 +47,18 @@ public class GamefieldController implements Initializable {
     public GridPane gameFieldGridPane;
     @FXML
     public Text timerDisplay;
+    @FXML
+    public Text markedFieldsDisplay;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         difficultyChoiceBox.getItems().addAll("Rookie", "Intermediate", "Master");
         difficultyChoiceBox.setValue("Rookie"); //Default value
-
+        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
     }
 
     public void startButtonClicked(ActionEvent actionEvent) {
+        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
         if (timerTimeLine != null) {
             stopTimer();
         }
@@ -138,10 +143,10 @@ public class GamefieldController implements Initializable {
 
     private void defineBombs() {
         int bombCount = 0;
-        while (bombCount < bombs) {
+        while (bombCount < getBombs()) {
             Random r = new Random();
-            int randCols = r.nextInt(cols);
-            int randRows = r.nextInt(rows);
+            int randCols = r.nextInt(getCols());
+            int randRows = r.nextInt(getRows());
 
             MinesweeperButtonController controller = getController(randCols, randRows);
 
@@ -151,8 +156,8 @@ public class GamefieldController implements Initializable {
             }
         }
 
-        for (int col = 0; col < cols; ++col) {
-            for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < getCols(); ++col) {
+            for (int row = 0; row < getRows(); ++row) {
                 MinesweeperButtonController controller = getController(col, row);
                 controller.setBombsNearby(getBombsNearPosition(col, row));
             }
@@ -198,7 +203,7 @@ public class GamefieldController implements Initializable {
 
                 // das Feld 0,0 ist das Feld auf dem ich stehe und muss nicht mehr aufgedeckt werden
                 //also wird die nächste Iteration aufgerufen
-                if (i == 0 && j == 0){
+                if (i == 0 && j == 0) {
                     continue;
                 }
 
@@ -273,5 +278,13 @@ public class GamefieldController implements Initializable {
 
     public void setSecondsSinceStart(int secondsSinceStart) {
         this.secondsSinceStart = secondsSinceStart;
+    }
+
+    public int getMarkedFieldsCount() {
+        return markedFieldsCount;
+    }
+
+    public void setMarkedFieldsCount(int markedFieldsCount) {
+        this.markedFieldsCount = markedFieldsCount;
     }
 }
