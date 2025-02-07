@@ -14,7 +14,7 @@ public class MinesweeperApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("gamefield-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Minesweeper");
-        stage.setFullScreen(true);
+        //stage.setFullScreen(true);
         stage.setResizable(true);
         stage.setFullScreenExitHint("Use ESC to leave Fullscreen");
         stage.setScene(scene);

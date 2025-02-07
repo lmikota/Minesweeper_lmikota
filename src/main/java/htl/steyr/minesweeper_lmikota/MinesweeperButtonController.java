@@ -1,13 +1,11 @@
 package htl.steyr.minesweeper_lmikota;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
 import java.net.URL;
@@ -62,6 +60,7 @@ public class MinesweeperButtonController implements Initializable {
                     getGamefieldController().setMarkedFieldsCount(getGamefieldController().getMarkedFieldsCount() + 1);
                     showMarkedFields(getGamefieldController().getMarkedFieldsCount());
                 }
+                getGamefieldController().checkWinCondition();
             } else if (mouseEvent.getButton() == MouseButton.PRIMARY && !marked) {
                 reveal();
                 setRevealed(true);
@@ -71,21 +70,25 @@ public class MinesweeperButtonController implements Initializable {
     }
 
     public void showMarkedFields(int markedFieldsCount) {
-        getGamefieldController().markedFieldsDisplay.setText("🚩: "+markedFieldsCount);
+        getGamefieldController().markedFieldsDisplay.setText("🚩: " + markedFieldsCount);
     }
 
 
     public void reveal() {
         revealed = true;
-        button.setVisible(false);
+        getGamefieldController().checkWinCondition();
+        if (!isMarked()) {
+            button.setVisible(false);
+            getGamefieldController().checkWinCondition();
 
-        if (isBomb()) {
-            bombLabel.setVisible(true);
-            getGamefieldController().revalAllFields();
-        } else {
-            infoLabel.setVisible(true);
-            if (getBombsNearby() == 0) {
-                getGamefieldController().revealEmptyFields(col,row);
+            if (isBomb()) {
+                bombLabel.setVisible(true);
+                getGamefieldController().revealAllFields();
+            } else {
+                infoLabel.setVisible(true);
+                if (getBombsNearby() == 0) {
+                    getGamefieldController().revealEmptyFields(col, row);
+                }
             }
         }
     }

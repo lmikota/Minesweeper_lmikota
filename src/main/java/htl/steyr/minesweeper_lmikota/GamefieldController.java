@@ -3,15 +3,12 @@ package htl.steyr.minesweeper_lmikota;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -19,15 +16,14 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.ResourceBundle;
-import java.util.Timer;
+import java.util.*;
 
 public class GamefieldController implements Initializable {
     private int cols;
     private int rows;
     private int bombs;
+    private boolean isEndScreen = false;
+    private boolean matchWon;
 
     private int secondsSinceStart;
     private Timeline timerTimeLine;
@@ -36,7 +32,7 @@ public class GamefieldController implements Initializable {
 
 
     public HashMap<String, DifficultySettings> difficultySettingsHashMap = new HashMap<>() {{
-        put("Rookie", new DifficultySettings(6, 10, 10));
+        put("Rookie", new DifficultySettings(6, 10, 2));
         put("Intermediate", new DifficultySettings(9, 15, 25));
         put("Master", new DifficultySettings(15, 25, 65));
     }};
@@ -57,7 +53,8 @@ public class GamefieldController implements Initializable {
         markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
     }
 
-    public void startButtonClicked(ActionEvent actionEvent) {
+    public void startButtonClicked() {
+        setEndScreen(false);
         markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
         if (timerTimeLine != null) {
             stopTimer();
@@ -70,7 +67,7 @@ public class GamefieldController implements Initializable {
         createGameFieldGrid();
     }
 
-    public void exitButtonClicked(ActionEvent actionEvent) {
+    public void exitButtonClicked() {
         Platform.exit();
     }
 
@@ -149,7 +146,6 @@ public class GamefieldController implements Initializable {
             int randRows = r.nextInt(getRows());
 
             MinesweeperButtonController controller = getController(randCols, randRows);
-
             if (!controller.isBomb()) {
                 controller.setBomb(true);
                 ++bombCount;
@@ -183,7 +179,7 @@ public class GamefieldController implements Initializable {
     }
 
 
-    public void revalAllFields() {
+    public void revealAllFields() {
         for (int col = 0; col < getCols(); col++) {
             for (int row = 0; row < getRows(); row++) {
                 MinesweeperButtonController controller = getController(col, row);
@@ -195,6 +191,51 @@ public class GamefieldController implements Initializable {
             }
         }
         stopTimer();
+        loadEndScreen();
+    }
+
+
+    public void checkWinCondition() {
+        boolean allNonBombCellsRevealed = true;
+        boolean allBombsCorrectlyMarked = true;
+
+        for (int col = 0; col < getCols(); col++) {
+            for (int row = 0; row < getRows(); row++) {
+                MinesweeperButtonController controller = getController(col, row);
+
+                if (controller != null) {
+                    if (!controller.isBomb() && !controller.isRevealed()) {
+                        allNonBombCellsRevealed = false;
+                    }
+                    if (controller.isBomb() && !controller.isMarked()) {
+                        allBombsCorrectlyMarked = false;
+                    }
+                }
+            }
+        }
+
+        if (allBombsCorrectlyMarked && allNonBombCellsRevealed) {
+            setMatchWon(true);
+            stopTimer();
+            loadEndScreen();
+        }
+    }
+
+    public void loadEndScreen() {
+        if(!isEndScreen()) {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("endScreen.fxml"));
+                Scene scene = new Scene(fxmlLoader.load());
+                Stage stage = new Stage();
+                EndScreenController controller = fxmlLoader.getController();
+                controller.setGamefieldController(this);
+                stage.setScene(scene);
+                stage.show();
+                setEndScreen(true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void revealEmptyFields(int col, int row) {
@@ -215,7 +256,7 @@ public class GamefieldController implements Initializable {
                     MinesweeperButtonController neighbor = getController(nextCol, nextRow);
 
                     if (neighbor != null && !neighbor.isRevealed() && !neighbor.isBomb()) {
-                        // Wenn es keine Bombe ist, decken wir es auf
+                        // Wenn es keine Bombe ist, decke ich es auf
                         neighbor.setPosition(nextCol, nextRow); // Setze die Position für spätere Verwendung
                         neighbor.reveal();
 
@@ -225,6 +266,7 @@ public class GamefieldController implements Initializable {
                 }
             }
         }
+        checkWinCondition();
     }
 
     private int getBombsNearPosition(int col, int row) {
@@ -286,5 +328,21 @@ public class GamefieldController implements Initializable {
 
     public void setMarkedFieldsCount(int markedFieldsCount) {
         this.markedFieldsCount = markedFieldsCount;
+    }
+
+    public boolean isEndScreen() {
+        return isEndScreen;
+    }
+
+    public void setEndScreen(boolean endScreen) {
+        isEndScreen = endScreen;
+    }
+
+    public boolean isMatchWon() {
+        return matchWon;
+    }
+
+    public void setMatchWon(boolean matchWon) {
+        this.matchWon = matchWon;
     }
 }

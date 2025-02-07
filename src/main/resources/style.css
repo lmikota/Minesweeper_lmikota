@@ -10,3 +10,8 @@
 .lightGreenButton {
     -fx-background-color: lightgreen;
 }
+
+.label {
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
