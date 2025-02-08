@@ -9,7 +9,8 @@
    <children>
       <ImageView fitHeight="400.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" />
       <Text fx:id="gameOverTextField" layoutX="94.0" layoutY="82.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" textAlignment="CENTER" wrappingWidth="410.93670654296875" />
-      <Button fx:id="playAgainButton" layoutX="175.0" layoutY="260.0" mnemonicParsing="false" onAction="#playAgainButtonClicked" prefHeight="35.0" prefWidth="77.0" text="Play Again" />
-      <Button fx:id="exitButton" layoutX="355.0" layoutY="260.0" mnemonicParsing="false" onAction="#exitButtonClicked" prefHeight="35.0" prefWidth="66.0" text="Exit" />
+      <Button fx:id="playAgainButton" layoutX="123.0" layoutY="260.0" mnemonicParsing="false" onAction="#playAgainButtonClicked" prefHeight="35.0" prefWidth="77.0" text="Play Again" />
+      <Button fx:id="exitButton" layoutX="399.0" layoutY="260.0" mnemonicParsing="false" onAction="#exitButtonClicked" prefHeight="35.0" prefWidth="66.0" text="Exit" />
+      <Button fx:id="backToMenuButton" layoutX="252.0" layoutY="260.0" mnemonicParsing="false" onAction="#backToMenuButtonClicked" prefHeight="35.0" prefWidth="94.0" text="Back to Menu" />
    </children>
 </AnchorPane>

@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.text.Text?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.6" prefWidth="850.0" stylesheets="@../../../style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="htl.steyr.minesweeper_lmikota.GamefieldController">
     <children>
-        <ChoiceBox fx:id="difficultyChoiceBox" layoutX="14.0" layoutY="39.0" prefWidth="150.0" stylesheets="@../../../style.css" />
         <GridPane fx:id="gameFieldGridPane" layoutX="14.0" layoutY="79.0" prefHeight="400.0" prefWidth="500.0" stylesheets="@../../../style.css" AnchorPane.bottomAnchor="31.200000000000045" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="244.39999999999998" AnchorPane.topAnchor="79.00000000000006">
         </GridPane>
-        <Text layoutX="14.0" layoutY="27.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select prefered Difficulty below" />
-        <Button fx:id="startButton" layoutX="675.0" layoutY="446.0" mnemonicParsing="false" onAction="#startButtonClicked" prefHeight="26.0" prefWidth="97.0" text="Start Game" AnchorPane.bottomAnchor="32.200000000000024" AnchorPane.rightAnchor="77.4" />
         <Button fx:id="exitButton" layoutX="706.0" layoutY="394.0" mnemonicParsing="false" onAction="#exitButtonClicked" text="Exit" AnchorPane.bottomAnchor="85.0" AnchorPane.rightAnchor="108.79999999999995" />
         <Text fx:id="timerDisplay" layoutX="222.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Timer:" wrappingWidth="49.37811279296875" />
       <Text fx:id="markedFieldsDisplay" layoutX="397.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" text="🚩: " wrappingWidth="35.200000000000045" />
+      <Text fx:id="playerNameTextField" layoutX="679.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="88.5367431640625" />
     </children>
 </AnchorPane>

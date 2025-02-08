@@ -1,19 +1,27 @@
 package htl.steyr.minesweeper_lmikota;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -24,6 +32,7 @@ public class GamefieldController implements Initializable {
     private int bombs;
     private boolean isEndScreen = false;
     private boolean matchWon;
+    private String selectedDifficulty;
 
     private int secondsSinceStart;
     private Timeline timerTimeLine;
@@ -32,11 +41,13 @@ public class GamefieldController implements Initializable {
 
 
     public HashMap<String, DifficultySettings> difficultySettingsHashMap = new HashMap<>() {{
-        put("Rookie", new DifficultySettings(6, 10, 2));
-        put("Intermediate", new DifficultySettings(9, 15, 25));
-        put("Master", new DifficultySettings(15, 25, 65));
+        put("Rookie", new DifficultySettings(6, 10, 7));
+        put("Intermediate", new DifficultySettings(9, 15, 15));
+        put("Master", new DifficultySettings(15, 25, 50));
     }};
 
+    @FXML
+    public Text playerNameTextField;
     @FXML
     public ChoiceBox difficultyChoiceBox;
     @FXML
@@ -45,25 +56,27 @@ public class GamefieldController implements Initializable {
     public Text timerDisplay;
     @FXML
     public Text markedFieldsDisplay;
+    @FXML
+    public Button startButton;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        difficultyChoiceBox.getItems().addAll("Rookie", "Intermediate", "Master");
-        difficultyChoiceBox.setValue("Rookie"); //Default value
-        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
+
     }
+
 
     public void startButtonClicked() {
         setEndScreen(false);
-        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
+        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(getSelectedDifficulty()).getBombs());
+        setMarkedFieldsCount(difficultySettingsHashMap.get(getSelectedDifficulty()).getBombs());
         if (timerTimeLine != null) {
             stopTimer();
         }
         setSecondsSinceStart(0);
         startTimer();
-        setRows(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getRows());
-        setCols(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getCols());
-        setBombs(difficultySettingsHashMap.get(difficultyChoiceBox.getValue()).getBombs());
+        setRows(difficultySettingsHashMap.get(getSelectedDifficulty()).getRows());
+        setCols(difficultySettingsHashMap.get(getSelectedDifficulty()).getCols());
+        setBombs(difficultySettingsHashMap.get(getSelectedDifficulty()).getBombs());
         createGameFieldGrid();
     }
 
@@ -191,7 +204,25 @@ public class GamefieldController implements Initializable {
             }
         }
         stopTimer();
+        fileWriter();
         loadEndScreen();
+    }
+
+    /**
+     * @ToDo Exceptionhandling wenn es Probleme beim writen gab
+     */
+//Integer.parseInt(timerDisplay.getText())
+    public void fileWriter() {
+        User user = new User(playerNameTextField.getText().trim(), 10, isMatchWon());
+        BufferedWriter writer;
+        Gson gson = new Gson();
+        try {
+            writer = new BufferedWriter(new FileWriter("htl/steyr/minesweeper_lmikota/UsersPersonalRecords.json"));
+            writer.write(gson.toJson(user.getClass()));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -217,12 +248,18 @@ public class GamefieldController implements Initializable {
         if (allBombsCorrectlyMarked && allNonBombCellsRevealed) {
             setMatchWon(true);
             stopTimer();
+            fileWriter();
             loadEndScreen();
         }
     }
 
+    public void setSelectedDifficulty(String difficulty) {
+        this.selectedDifficulty = difficulty;
+        markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficulty).getBombs());
+    }
+
     public void loadEndScreen() {
-        if(!isEndScreen()) {
+        if (!isEndScreen()) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("endScreen.fxml"));
                 Scene scene = new Scene(fxmlLoader.load());
@@ -344,5 +381,9 @@ public class GamefieldController implements Initializable {
 
     public void setMatchWon(boolean matchWon) {
         this.matchWon = matchWon;
+    }
+
+    public String getSelectedDifficulty() {
+        return selectedDifficulty;
     }
 }

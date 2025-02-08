@@ -11,7 +11,12 @@ import java.io.IOException;
 public class MinesweeperApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("gamefield-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("startScreen.fxml"));
+        /**
+         * @ToDo
+         * StartScreen wär nu cool
+         */
+        //FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("gamefield-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Minesweeper");
         //stage.setFullScreen(true);
