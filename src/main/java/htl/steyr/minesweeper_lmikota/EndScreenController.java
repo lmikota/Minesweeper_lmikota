@@ -2,6 +2,7 @@ package htl.steyr.minesweeper_lmikota;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -14,7 +15,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class EndScreenController implements Initializable {
+    @FXML
     public Button playAgainButton;
+    @FXML
     public Text gameOverTextField;
     private GamefieldController gamefieldController;
 
@@ -41,7 +44,13 @@ public class EndScreenController implements Initializable {
     public void playAgainButtonClicked(ActionEvent actionEvent) {
         Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
         stage.close();
-        getGamefieldController().startButtonClicked();
+        try {
+            getGamefieldController().startButtonClicked();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateText() {

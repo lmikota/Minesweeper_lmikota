@@ -1,11 +1,13 @@
 package htl.steyr.minesweeper_lmikota;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String username;
     private int finishTime;
     private boolean matchWon;
 
-    public User (String username, int finishTime, boolean matchWon) {
+    public User(String username, int finishTime, boolean matchWon) {
         setUsername(username);
         setFinishTime(finishTime);
         setMatchWon(matchWon);
@@ -29,6 +31,11 @@ public class User {
 
     public boolean isMatchWon() {
         return matchWon;
+    }
+
+    @Override
+    public String toString() {
+        return username + " | " + finishTime + "s";
     }
 
     public void setMatchWon(boolean matchWon) {

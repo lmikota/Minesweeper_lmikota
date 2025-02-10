@@ -1,7 +1,9 @@
 package htl.steyr.minesweeper_lmikota;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -25,6 +27,7 @@ public class MinesweeperButtonController implements Initializable {
     private boolean revealed = false; // Wurde das Feld aufgedeckt?
     private int bombsNearby = 0; // Wieviele Bomben liegen im Umkreis?
     private GamefieldController gamefieldController;
+    private EndScreenController endScreenController;
 
     private int col = -1; // die aktuelle Spalte des Buttons
     private int row = -1; // die aktuelle Zeile des Buttons
@@ -60,7 +63,11 @@ public class MinesweeperButtonController implements Initializable {
                     getGamefieldController().setMarkedFieldsCount(getGamefieldController().getMarkedFieldsCount() + 1);
                     showMarkedFields(getGamefieldController().getMarkedFieldsCount());
                 }
-                getGamefieldController().checkWinCondition();
+                try {
+                    getGamefieldController().checkWinCondition();
+                } catch (FileWriteException e) {
+                    System.err.println(e.getMessage());
+                }
             } else if (mouseEvent.getButton() == MouseButton.PRIMARY && !marked) {
                 reveal();
                 setRevealed(true);
@@ -76,14 +83,26 @@ public class MinesweeperButtonController implements Initializable {
 
     public void reveal() {
         revealed = true;
-        getGamefieldController().checkWinCondition();
+        try {
+            getGamefieldController().checkWinCondition();
+        } catch (FileWriteException e) {
+            System.err.println(e.getMessage());
+        }
         if (!isMarked()) {
             button.setVisible(false);
-            getGamefieldController().checkWinCondition();
+            try {
+                getGamefieldController().checkWinCondition();
+            } catch (FileWriteException e) {
+                System.err.println(e.getMessage());
+            }
 
             if (isBomb()) {
                 bombLabel.setVisible(true);
-                getGamefieldController().revealAllFields();
+                try {
+                    getGamefieldController().revealAllFields();
+                } catch (FileWriteException e) {
+                    System.err.println(e.getMessage());
+                }
             } else {
                 infoLabel.setVisible(true);
                 if (getBombsNearby() == 0) {
@@ -148,4 +167,11 @@ public class MinesweeperButtonController implements Initializable {
         this.gamefieldController = gamefieldController;
     }
 
+    public EndScreenController getEndScreenController() {
+        return endScreenController;
+    }
+
+    public void setEndScreenController(EndScreenController endScreenController) {
+        this.endScreenController = endScreenController;
+    }
 }

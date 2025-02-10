@@ -20,9 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import javax.swing.*;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -33,6 +31,9 @@ public class GamefieldController implements Initializable {
     private boolean isEndScreen = false;
     private boolean matchWon;
     private String selectedDifficulty;
+    private static final String ROOKIE_FILE_NAME = "RookieHS.ser";
+    private static final String INTERMEDIATE_FILE_NAME = "IntermediateHS.ser";
+    private static final String MASTER_FILE_NAME = "MasterHS.ser";
 
     private int secondsSinceStart;
     private Timeline timerTimeLine;
@@ -58,6 +59,8 @@ public class GamefieldController implements Initializable {
     public Text markedFieldsDisplay;
     @FXML
     public Button startButton;
+    @FXML
+    public Text highScoreText;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -65,10 +68,16 @@ public class GamefieldController implements Initializable {
     }
 
 
-    public void startButtonClicked() {
+    public void startButtonClicked() throws IOException, ClassNotFoundException {
         setEndScreen(false);
         markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(getSelectedDifficulty()).getBombs());
         setMarkedFieldsCount(difficultySettingsHashMap.get(getSelectedDifficulty()).getBombs());
+        User highScoreUser = fileReader(getFileName());
+        if (!highScoreUser.getUsername().equals("DEFAULT_USERNAME")) {
+            highScoreText.setText("Highscore: " + highScoreUser);
+        } else {
+            highScoreText.setText("Be the first one to win!");
+        }
         if (timerTimeLine != null) {
             stopTimer();
         }
@@ -87,7 +96,7 @@ public class GamefieldController implements Initializable {
     public void startTimer() {
         timerTimeLine = new Timeline(new KeyFrame(Duration.seconds(1), actionEvent -> {
             setSecondsSinceStart(getSecondsSinceStart() + 1);
-            timerDisplay.setText("Timer: " + getSecondsSinceStart());
+            timerDisplay.setText(String.valueOf(getSecondsSinceStart()));
         }));
         timerTimeLine.setCycleCount(Timeline.INDEFINITE);
         timerTimeLine.play();
@@ -192,7 +201,7 @@ public class GamefieldController implements Initializable {
     }
 
 
-    public void revealAllFields() {
+    public void revealAllFields() throws FileWriteException {
         for (int col = 0; col < getCols(); col++) {
             for (int row = 0; row < getRows(); row++) {
                 MinesweeperButtonController controller = getController(col, row);
@@ -204,29 +213,54 @@ public class GamefieldController implements Initializable {
             }
         }
         stopTimer();
-        fileWriter();
+        try {
+            fileWriter(getFileName());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            throw new FileWriteException("Error while Writing into File: " + getFileName());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         loadEndScreen();
     }
 
-    /**
-     * @ToDo Exceptionhandling wenn es Probleme beim writen gab
-     */
-//Integer.parseInt(timerDisplay.getText())
-    public void fileWriter() {
-        User user = new User(playerNameTextField.getText().trim(), 10, isMatchWon());
-        BufferedWriter writer;
-        Gson gson = new Gson();
-        try {
-            writer = new BufferedWriter(new FileWriter("htl/steyr/minesweeper_lmikota/UsersPersonalRecords.json"));
-            writer.write(gson.toJson(user.getClass()));
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public String getFileName() {
+        switch (getSelectedDifficulty()) {
+            case "Intermediate":
+                return INTERMEDIATE_FILE_NAME;
+            case "Rookie":
+                return ROOKIE_FILE_NAME;
+            case "Master":
+                return MASTER_FILE_NAME;
+            default:
+                return "Something went wrong";
         }
     }
 
+    public void fileWriter(String filename) throws IOException, ClassNotFoundException {
+        if (!isMatchWon()) {
+            return;
+        }
+        User user = null;
+        User loadedUser = fileReader(filename);
+        if (loadedUser.getFinishTime() <= Integer.parseInt(timerDisplay.getText())) {
+            user = new User(playerNameTextField.getText().trim(), loadedUser.getFinishTime(), isMatchWon());
+        } else {
+            user = new User(playerNameTextField.getText().trim(), Integer.parseInt(timerDisplay.getText()), isMatchWon());
+        }
+        new ObjectOutputStream(new FileOutputStream(filename)).writeObject(user);
+    }
 
-    public void checkWinCondition() {
+    public User fileReader(String filename) throws ClassNotFoundException, IOException {
+        if (!new File(filename).exists()) {
+            User user = new User("DEFAULT_USERNAME", 10000000, false);
+            new ObjectOutputStream(new FileOutputStream(filename)).writeObject(user);
+        }
+        return (User) new ObjectInputStream(new FileInputStream(filename)).readObject();
+    }
+
+
+    public void checkWinCondition() throws FileWriteException {
         boolean allNonBombCellsRevealed = true;
         boolean allBombsCorrectlyMarked = true;
 
@@ -248,7 +282,14 @@ public class GamefieldController implements Initializable {
         if (allBombsCorrectlyMarked && allNonBombCellsRevealed) {
             setMatchWon(true);
             stopTimer();
-            fileWriter();
+            try {
+                fileWriter(getFileName());
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                throw new FileWriteException("Error while Writing into File: " + getFileName());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             loadEndScreen();
         }
     }
@@ -267,6 +308,7 @@ public class GamefieldController implements Initializable {
                 EndScreenController controller = fxmlLoader.getController();
                 controller.setGamefieldController(this);
                 stage.setScene(scene);
+                stage.setResizable(false);
                 stage.show();
                 setEndScreen(true);
             } catch (IOException e) {
@@ -303,7 +345,11 @@ public class GamefieldController implements Initializable {
                 }
             }
         }
-        checkWinCondition();
+        try {
+            checkWinCondition();
+        } catch (FileWriteException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     private int getBombsNearPosition(int col, int row) {
