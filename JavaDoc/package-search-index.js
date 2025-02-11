@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"Alle Packages","u":"allpackages-index.html"},{"m":"htl.steyr.minesweeper_lmikota","l":"htl.steyr.minesweeper_lmikota"}];updateSearchResults();
