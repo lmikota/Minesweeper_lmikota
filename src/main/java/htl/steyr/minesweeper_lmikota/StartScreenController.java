@@ -1,7 +1,6 @@
 package htl.steyr.minesweeper_lmikota;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -20,6 +19,14 @@ public class StartScreenController implements Initializable {
     @FXML
     public TextField playerNameTextField;
 
+    /**
+     * In der initialize werden Items zur Choicebox hinzugefügt
+     * und Default werte für Username und Difficulty gesetzt
+     *
+     * @param url
+     * @param resourceBundle
+     */
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         difficultyChoiceBox.getItems().addAll("Rookie", "Intermediate", "Master");
@@ -27,7 +34,13 @@ public class StartScreenController implements Initializable {
         playerNameTextField.setText("User"); //Default value
     }
 
-    public void startButtonClicked() throws ClassNotFoundException {
+    /**
+     * Lädt das Spielfeld und startet ein neues Spiel mit den gewählten Einstellungen.
+     * Setzt die Schwierigkeit und den Spielernamen, wechselt zur Spielfeldansicht
+     * und startet das Spiel in dem es die startButtonClicked im GamefieldController aufruft.
+     */
+
+    public void startButtonClicked() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("gamefield-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
@@ -41,12 +54,15 @@ public class StartScreenController implements Initializable {
             stage.show();
 
             controller.startButtonClicked();
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    public void exitButtonClicked(ActionEvent actionEvent) {
+    /**
+     * Schließt die Anwendung
+     */
+    public void exitButtonClicked() {
         Platform.exit();
     }
 }

@@ -42,7 +42,8 @@ public class MinesweeperButtonController implements Initializable {
 
     /**
      * Lässt flaggen auf die Buttons setzen (sekundäre Maustaste) und ruft bei click mit der primären Maustaste
-     * die reveal() funktion auf
+     * die reveal() funktion auf.
+     * Aktualisiert die Anzahl der noch zu markierenden Felder
      *
      * @param mouseEvent
      */
@@ -76,10 +77,29 @@ public class MinesweeperButtonController implements Initializable {
         }
     }
 
+    /**
+     * Aktualisiert den markedFieldsCount im markedFieldsDisplay.
+     *
+     * @param markedFieldsCount
+     */
+
     public void showMarkedFields(int markedFieldsCount) {
         getGamefieldController().markedFieldsDisplay.setText("🚩: " + markedFieldsCount);
     }
 
+    /**
+     * Deckt das aktuelle Spielfeld-Feld auf und führt verschiedene Aktionen abhängig vom Feldtyp aus.
+     *
+     * Setzt den Zustand des Feldes auf "aufgedeckt" und prüft,
+     * ob das Spiel bereits gewonnen wurde checkWinCondition().
+     * Falls das Feld markiert ist (z. B. als mögliche Bombe), wird die Methode beendet.
+     * Versteckt den Button des Feldes, sodass dessen Inhalt sichtbar wird.
+     * Falls das Feld eine Bombe ist werden alle Felder aufgedeckt revealAllFields(); und die Bombe angezeigt:
+     * Falls das Feld keine Bombe ist wird die Anzahl der Umliegenden Felder im Infolabel angezeigt:
+     * Falls keine umliegenden Bomben vorhanden sind, ruft es rekursiv revealEmptyFields()
+     * auf, um angrenzende leere Felder ebenfalls aufzudecken.
+     * Führt eine erneute Überprüfung der Siegbedingung durch checkWinCondition().
+     */
 
     public void reveal() {
         revealed = true;
@@ -107,6 +127,7 @@ public class MinesweeperButtonController implements Initializable {
                 infoLabel.setVisible(true);
                 if (getBombsNearby() == 0) {
                     getGamefieldController().revealEmptyFields(col, row);
+                    infoLabel.setText("");
                 }
             }
         }

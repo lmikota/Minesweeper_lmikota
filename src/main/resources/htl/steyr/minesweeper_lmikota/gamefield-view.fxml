@@ -22,5 +22,6 @@
         <Text fx:id="playerNameTextField" layoutX="1060.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="gameFieldText" wrappingWidth="88.5367431640625" />
         <Text layoutX="315.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="gameFieldText" text="Timer:" />
         <Text fx:id="highScoreText" layoutX="14.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="gameFieldText" wrappingWidth="282.37811279296875" />
+      <Button fx:id="menuButton" layoutX="1060.0" layoutY="503.0" mnemonicParsing="false" onAction="#menuButtonClicked" prefHeight="46.0" prefWidth="98.0" styleClass="defaultButtons" text="Menu" AnchorPane.bottomAnchor="112.0" AnchorPane.rightAnchor="65.0" />
     </children>
 </AnchorPane>

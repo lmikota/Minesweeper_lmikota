@@ -50,15 +50,13 @@ public class GamefieldController implements Initializable {
     @FXML
     public Text playerNameTextField;
     @FXML
-    public ChoiceBox difficultyChoiceBox;
-    @FXML
     public GridPane gameFieldGridPane;
     @FXML
     public Text timerDisplay;
     @FXML
     public Text markedFieldsDisplay;
     @FXML
-    public Button startButton;
+    public Button menuButton;
     @FXML
     public Text highScoreText;
 
@@ -67,6 +65,18 @@ public class GamefieldController implements Initializable {
 
     }
 
+
+    /**
+     * Startet das Spiel mit den aktuellen Einstellungen und zeigt das Spielfeld an.
+     * <p>
+     * Diese Methode setzt die Spielparameter zurück, zeigt den Highscore an,
+     * startet den Timer und erstellt das Spielfeld basierend auf den ausgewählten
+     * Schwierigkeitsgraden. Außerdem wird die Anzeige der markierten Felder
+     * und die Anzahl der Bomben aktualisiert.
+     *
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
 
     public void startButtonClicked() throws IOException, ClassNotFoundException {
         setEndScreen(false);
@@ -89,9 +99,38 @@ public class GamefieldController implements Initializable {
         createGameFieldGrid();
     }
 
+    /**
+     * Schließt das aktuelle Fenster und bringt dich zum Startmenü
+     *
+     * @param actionEvent
+     */
+
+    public void menuButtonClicked(ActionEvent actionEvent) {
+        Stage gameFieldStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+        gameFieldStage.close();
+
+        MinesweeperApplication application = new MinesweeperApplication();
+        try {
+            application.start(new Stage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Schließt die Anwendung
+     */
+
     public void exitButtonClicked() {
         Platform.exit();
     }
+
+    /**
+     * Startet den Timer für das Spiel.
+     * <p>
+     * Diese Methode startet einen vorerst unendlichen Timer, der jede Sekunde,
+     * die vergangene Spielzeit (in Sekunden) aktualisiert und auf dem Timer-Display anzeigt.
+     */
 
     public void startTimer() {
         timerTimeLine = new Timeline(new KeyFrame(Duration.seconds(1), actionEvent -> {
@@ -102,10 +141,22 @@ public class GamefieldController implements Initializable {
         timerTimeLine.play();
     }
 
+    /**
+     * Stoppt den Timer
+     */
+
     public void stopTimer() {
         timerTimeLine.stop();
     }
 
+    /**
+     * Erstellt das Spielfeld-Gitter basierend auf den aktuellen Zeilen- und Spaltenwerten.
+     * <p>
+     * Diese Methode setzt das Layout des `gameFieldGridPane` zurück und fügt dynamisch
+     * Zeilen- und Spaltenbeschränkungen hinzu, basierend auf der Anzahl der Zeilen (rows)
+     * und Spalten (cols). Danach werden die Buttons in die Gridpane platziert und die Bomben
+     * werden definiert.
+     */
 
     private void createGameFieldGrid() {
 
@@ -130,35 +181,52 @@ public class GamefieldController implements Initializable {
             gameFieldGridPane.getRowConstraints().add(rowConstraints);
         }
 
-        placeButtonsIntoGrid();
+        try {
+            placeButtonsIntoGrid();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         defineBombs();
     }
 
+    /**
+     * Platziert die Buttons in die gameFieldGridpane.
+     * <p>
+     * Diese Methode lädt für jede Zelle im Gitter ein neues buttonPane mit einem MinesweeperButtonController,
+     * setzt die Position des Buttons im Gitter und fügt ihn zur gameFieldGridPane hinzu. Es wird zwischen
+     * zwei Button-Stilen ("lightGreenButton" und "greenButton") gewechselt, damit ein Schachbrettmuster entsteht.
+     */
 
-    private void placeButtonsIntoGrid() {
+    private void placeButtonsIntoGrid() throws IOException {
         for (int col = 0; col < cols; ++col) {
             for (int row = 0; row < rows; ++row) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("minesweeperbutton-view.fxml"));
-                    Pane buttonPane = loader.load();
-                    MinesweeperButtonController controller = loader.getController();
-                    buttonPane.setUserData(controller);
-                    controller.setGamefieldController(this);
-                    controller.setPosition(col, row);
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("minesweeperbutton-view.fxml"));
+                Pane buttonPane = loader.load();
+                MinesweeperButtonController controller = loader.getController();
+                buttonPane.setUserData(controller);
+                controller.setGamefieldController(this);
+                controller.setPosition(col, row);
 
-                    if ((col + row) % 2 == 0) {
-                        controller.button.getStyleClass().add("lightGreenButton");
-                    } else {
-                        controller.button.getStyleClass().add("greenButton");
-                    }
-
-                    gameFieldGridPane.add(buttonPane, col, row);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                if ((col + row) % 2 == 0) {
+                    controller.button.getStyleClass().add("lightGreenButton");
+                } else {
+                    controller.button.getStyleClass().add("greenButton");
                 }
+
+                gameFieldGridPane.add(buttonPane, col, row);
             }
         }
     }
+
+    /**
+     * Definiert die Positionen der Bomben im Spielfeld.
+     * <p>
+     * Diese Methode platziert zufällig Bomben auf dem Spielfeld, indem sie für jede Bombe eine zufällige
+     * Spalte und Zeile auswählt. Wenn die Position noch keine Bombe enthält, wird sie als Bombe markiert.
+     * Der Vorgang wird wiederholt, bis die gewünschte Anzahl an Bomben gesetzt wurde.
+     * <p>
+     * Ebenfalls werden die Bomben, welche rund um das Feld liegen definiert durch setBombsNearby().
+     */
 
     private void defineBombs() {
         int bombCount = 0;
@@ -182,6 +250,19 @@ public class GamefieldController implements Initializable {
         }
     }
 
+
+    /**
+     * Gibt das Kind-Element im GridPane an der angegebenen Spalte und Zeile zurück.
+     * <p>
+     * Diese Methode durchsucht alle Child Elemente des gameFieldGridPane und vergleicht deren Spalten und Zeilen
+     * mit den übergebenen Parametern. Wenn das Element an der angegebenen Position gefunden wird, wird es zurückgegeben.
+     * Andernfalls wird `null` zurückgegeben, wenn keine Übereinstimmung gefunden wird.
+     *
+     * @param col
+     * @param row
+     * @return Das `Node`-Element an der angegebenen Position oder `null`, wenn kein Element gefunden wurde.
+     */
+
     private Node getChildAt(int col, int row) {
         for (Node child : gameFieldGridPane.getChildren()) {
             if (GridPane.getColumnIndex(child) == col && GridPane.getRowIndex(child) == row) {
@@ -192,6 +273,18 @@ public class GamefieldController implements Initializable {
 
     }
 
+    /**
+     * Gibt den Controller des Buttons an der angegebenen Spalten- und Zeilenposition zurück.
+     * <p>
+     * Diese Methode ruft das Node-Element an der angegebenen Position im gameFieldGridPane ab.
+     * Falls das Node-Element existiert, wird der zugehörige MinesweeperButtonController, der als
+     * UserData des Nodes gespeichert ist, zurückgegeben. Andernfalls wird null zurückgegeben.
+     *
+     * @param col
+     * @param row
+     * @return Der MinesweeperButtonController an der angegebenen Position
+     */
+
     private MinesweeperButtonController getController(int col, int row) {
         Node node = getChildAt(col, row);
         if (node != null) {
@@ -200,6 +293,14 @@ public class GamefieldController implements Initializable {
         return null;
     }
 
+    /**
+     * Deckt alle Felder am Ende desSpiels auf.
+     * <p>
+     * Stoppt den Timer und ruft die fileWriter() Funktion auf um falls es einen neuen Highscore gibt,
+     * ihn in die Serialiserungs File zu schreiben.
+     *
+     * @throws FileWriteException wenn beim Schreiben in die File was schief läuft
+     */
 
     public void revealAllFields() throws FileWriteException {
         for (int col = 0; col < getCols(); col++) {
@@ -215,14 +316,22 @@ public class GamefieldController implements Initializable {
         stopTimer();
         try {
             fileWriter(getFileName());
+            loadEndScreen();
         } catch (IOException e) {
             System.err.println(e.getMessage());
             throw new FileWriteException("Error while Writing into File: " + getFileName());
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-        loadEndScreen();
+
     }
+
+    /**
+     * Gibt den Namen der File zurück, welcher die Highscore User Serialisierung je nach
+     * Schwierigkeitsgrad enthält.
+     *
+     * @return Die File-Name Konstante je nach Schwierigkeit
+     */
 
     public String getFileName() {
         switch (getSelectedDifficulty()) {
@@ -236,6 +345,20 @@ public class GamefieldController implements Initializable {
                 return "Something went wrong";
         }
     }
+
+    /**
+     * Schreibt die Spielerinformationen in eine Datei.
+     * <p>
+     * Diese Methode überprüft, ob das Spiel gewonnen wurde (isMatchWon()). Wenn dies der Fall ist, wird ein
+     * User-Objekt erstellt, das den Spielernamen und die Zeit enthält, die der Spieler benötigt hat, um das Spiel zu beenden.
+     * Falls die gespeicherte Zeit des geladenen Benutzers (aus der Datei) größer ist als die aktuelle Spielzeit,
+     * wird das neue Benutzerobjekt mit der aktuellen Spielzeit überschrieben. Das Benutzerobjekt wird dann in einer Datei
+     * gespeichert, die durch den Dateinamen angegeben ist.
+     *
+     * @param filename
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
 
     public void fileWriter(String filename) throws IOException, ClassNotFoundException {
         if (!isMatchWon()) {
@@ -251,6 +374,16 @@ public class GamefieldController implements Initializable {
         new ObjectOutputStream(new FileOutputStream(filename)).writeObject(user);
     }
 
+    /**
+     * Lest das User Objekt aus der Serialisierungs Datei,
+     * falls diese Datei nicht Existiert wird ein defaukt User mit extrem schlechter Zeit angegeben.
+     *
+     * @param filename der Pfad der .ser File
+     * @return Den User der File
+     * @throws ClassNotFoundException
+     * @throws IOException
+     */
+
     public User fileReader(String filename) throws ClassNotFoundException, IOException {
         if (!new File(filename).exists()) {
             User user = new User("DEFAULT_USERNAME", 10000000, false);
@@ -259,6 +392,17 @@ public class GamefieldController implements Initializable {
         return (User) new ObjectInputStream(new FileInputStream(filename)).readObject();
     }
 
+    /**
+     * Überprüft, ob die Gewinnbedingungen für das Spiel erfüllt sind.
+     * <p>
+     * Diese Methode prüft, ob alle Felder, die keine Bomben enthalten,
+     * aufgedeckt wurden und ob alle Bomben korrekt markiert wurden.
+     * Falls beide Bedingungen erfüllt sind, wird das Spiel als gewonnen markiert.
+     * Der Timer wird gestoppt, die Spielergebnisse werden in eine Datei geschrieben,
+     * und der Endbildschirm wird geladen.
+     *
+     * @throws FileWriteException
+     */
 
     public void checkWinCondition() throws FileWriteException {
         boolean allNonBombCellsRevealed = true;
@@ -284,38 +428,67 @@ public class GamefieldController implements Initializable {
             stopTimer();
             try {
                 fileWriter(getFileName());
+                loadEndScreen();
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                e.printStackTrace();
                 throw new FileWriteException("Error while Writing into File: " + getFileName());
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
-            loadEndScreen();
+
         }
     }
+
+    /**
+     * Setzt die ausgewählte Schwierigkeitsstufe und aktualisiert die Anzeige der markierten Felder.
+     * <p>
+     * Diese Methode speichert die vom Benutzer gewählte Schwierigkeitsstufe und aktualisiert
+     * die Anzeige der markierten Felder, indem die Anzahl der Bomben basierend
+     * auf der ausgewählten Schwierigkeit angezeigt wird.
+     *
+     * @param difficulty
+     */
 
     public void setSelectedDifficulty(String difficulty) {
         this.selectedDifficulty = difficulty;
         markedFieldsDisplay.setText("\uD83D\uDEA9: " + difficultySettingsHashMap.get(difficulty).getBombs());
     }
 
-    public void loadEndScreen() {
+    /**
+     * Lädt und zeigt den Endbildschirm des Spiels an.
+     * <p>
+     * Diese Methode lädt die FXML-Datei für den Endbildschirm endScreen.fxml und zeigt diesen auf einer neuen stage an,
+     * wenn der Endbildschirm noch nicht angezeigt wurde.
+     * Dabei wird der EndScreenController mit dem aktuellen GamefieldController
+     * verknüpft.
+     *
+     * @throws IOException
+     */
+
+    public void loadEndScreen() throws IOException {
         if (!isEndScreen()) {
-            try {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("endScreen.fxml"));
-                Scene scene = new Scene(fxmlLoader.load());
-                Stage stage = new Stage();
-                EndScreenController controller = fxmlLoader.getController();
-                controller.setGamefieldController(this);
-                stage.setScene(scene);
-                stage.setResizable(false);
-                stage.show();
-                setEndScreen(true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("endScreen.fxml"));
+            Scene scene = new Scene(fxmlLoader.load());
+            Stage stage = new Stage();
+            EndScreenController controller = fxmlLoader.getController();
+            controller.setGamefieldController(this);
+            stage.setScene(scene);
+            stage.setResizable(false);
+            stage.show();
+            setEndScreen(true);
         }
     }
+
+    /**
+     * Deckt alle benachbarten Felder eines leeren Feldes auf, das keine Bomben in der Nähe hat.
+     * Diese Methode prüft alle angrenzenden Felder des angegebenen Feldes
+     * und deckt diejenigen auf, die keine Bomben enthalten und noch nicht aufgedeckt wurden.
+     * Wenn ein aufgedecktes Feld keine benachbarten Bomben hat,
+     * wird die Methode rekursiv auf benachbarte Felder angewendet.
+     *
+     * @param col Die Spalte des Ausgangsfeldes.
+     * @param row Die Zeile des Ausgangsfeldes.
+     */
 
     public void revealEmptyFields(int col, int row) {
         for (int i = -1; i <= 1; i++) {
@@ -352,16 +525,22 @@ public class GamefieldController implements Initializable {
         }
     }
 
+    /**
+     * Berechnet die Anzahl der benachbarten Bomben für ein bestimmtes Feld.
+     * Diese Methode prüft alle benachbarten Felder und zählt, wie viele davon Bomben enthalten.
+     *
+     * @param col
+     * @param row
+     * @return Die Anzahl der benachbarten Bomben.
+     */
+
     private int getBombsNearPosition(int col, int row) {
         int bombsNearby = 0;
 
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i != 0 || j != 0) {
-
-
                     MinesweeperButtonController controller = getController(col + i, row + j);
-
                     if (controller != null && controller.isBomb()) {
                         ++bombsNearby;
                     }
