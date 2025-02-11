@@ -27,7 +27,7 @@ public class StartScreenController implements Initializable {
         playerNameTextField.setText("User"); //Default value
     }
 
-    public void startButtonClicked() {
+    public void startButtonClicked() throws ClassNotFoundException {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("gamefield-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
@@ -37,6 +37,7 @@ public class StartScreenController implements Initializable {
             controller.playerNameTextField.setText(playerNameTextField.getText());
             Stage stage = (Stage) difficultyChoiceBox.getScene().getWindow();
             stage.setScene(scene);
+            stage.setResizable(false);
             stage.show();
 
             controller.startButtonClicked();

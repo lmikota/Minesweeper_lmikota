@@ -12,16 +12,9 @@ public class MinesweeperApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("startScreen.fxml"));
-        /**
-         * @ToDo
-         * StartScreen wär nu cool
-         */
-        //FXMLLoader fxmlLoader = new FXMLLoader(MinesweeperApplication.class.getResource("gamefield-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Minesweeper");
-        //stage.setFullScreen(true);
-        stage.setResizable(true);
-        stage.setFullScreenExitHint("Use ESC to leave Fullscreen");
+        stage.setResizable(false);
         stage.setScene(scene);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/htl/steyr/minesweeper_lmikota/img/Minesweeper-logo.png")));
         stage.show();

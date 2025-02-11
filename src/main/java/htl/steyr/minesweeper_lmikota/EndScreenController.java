@@ -46,15 +46,13 @@ public class EndScreenController implements Initializable {
         stage.close();
         try {
             getGamefieldController().startButtonClicked();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
     public void updateText() {
-        if(getGamefieldController().isMatchWon()) {
+        if (getGamefieldController().isMatchWon()) {
             gameOverTextField.setText("You Won");
         } else {
             gameOverTextField.setText("You Lost");
