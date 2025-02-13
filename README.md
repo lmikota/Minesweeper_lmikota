@@ -31,5 +31,24 @@ A Minesweeper Application with varianting levels of difficulty, made in JavaFX b
  - **Back to Menu**: Opens the Start-screen and closes the End-screen
 - **Exit Button**: Closes the application
 
+## Screenshots
+### Start-Screen
+<img src="ScreenShotsForREADME/StartScreen.png">
+
+### Rookie
+<img src="ScreenShotsForREADME/Rookie.png">
+
+### Intermediate
+<img src="ScreenShotsForREADME/Intermediate.png">
+
+### Master
+<img src="ScreenShotsForREADME/Master.png">
+
+### End-Screen
+<img src="ScreenShotsForREADME/EndScreen.png">
+
+### While playing
+<img src="ScreenShotsForREADME/Playing.png">
+
 ## Author
 Leander Mikota from HTL-Steyr
